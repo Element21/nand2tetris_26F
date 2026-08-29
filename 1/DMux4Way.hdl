@@ -14,5 +14,9 @@ CHIP DMux4Way {
     OUT a, b, c, d;
 
     PARTS:
-    //// Replace this comment with your code.
+    DMux(in=in, sel=sel[1], a=aB, b=cD); // MSB of sel to split input
+    
+    // LSB to split those pairs
+    DMux(in=aB, sel=sel[0], a=a, b=b);
+    DMux(in=cD, sel=sel[0], a=c, b=d);
 }
