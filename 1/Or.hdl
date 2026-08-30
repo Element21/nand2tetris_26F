@@ -5,6 +5,7 @@
 /**
  * Or gate:
  * if (a or b) out = 1, else out = 0 
+ * not(a AND b) = not(a) or not(b)
  */
 CHIP Or {
     IN a, b;

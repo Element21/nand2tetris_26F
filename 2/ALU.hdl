@@ -33,7 +33,7 @@ CHIP ALU {
         nx, // negate the x input?
         zy, // zero the y input?
         ny, // negate the y input?
-        f,  // compute (out = x + y) or (out = x & y)?
+        f,  // compute (out = x + y) if 1 or (out = x & y) if 0
         no; // negate the out output?
     OUT 
         out[16], // 16-bit output
@@ -41,5 +41,43 @@ CHIP ALU {
         ng;      // if (out < 0)  equals 1, else 0
 
     PARTS:
-    //// Replace this comment with your code.
+    // Zero
+    Mux16(a=x, b=false, sel=zx, out=maybeZeroX); // zx = 1? output 0, else x
+    Mux16(a=y, b=false, sel=zy, out=maybeZeroY); // zy = 1? output 0, else y
+
+
+    // Negation
+    // Zero -> Negation
+    Not16(in=maybeZeroX, out=notMaybeZeroX);
+    Mux16(a=maybeZeroX, b=notMaybeZeroX, sel=nx, out=maybeNotMaybeZeroX); // nx = 1? use the negated zeroed x, else x
+
+    Not16(in=maybeZeroY, out=notMaybeZeroY);
+    Mux16(a=maybeZeroY, b=notMaybeZeroY, sel=ny, out=maybeNotMaybeZeroY); // ny = 1? use negated zeroed y, else y
+
+
+    // Functions (Add, And)
+    // Zero -> Negation -> Functions
+    Add16(a=maybeNotMaybeZeroX, b=maybeNotMaybeZeroY, out=addResult);
+    And16(a=maybeNotMaybeZeroX, b=maybeNotMaybeZeroY, out=andResult);
+
+    // Choose which function to output based on f
+    Mux16(a=andResult, b=addResult, sel=f, out=functionResult);
+
+
+    // Negate Output + Set Negative Flag
+    // Zero -> Negation -> Functions -> Negate Output -> Set Flags
+    Not16(in=functionResult, out=negationResult);
+
+    // no = 1? use negated functionResult, else functionResult
+    // Is output negative? (have to set negative flag here because I can't assign after the operation is complete?)
+    // Also get the upper and lower halves of output, needed to check for zero later
+    Mux16(a=functionResult, b=negationResult, sel=no, out=out, out[15] = ng, out[0..7] = lowerOutBits, out[8..15] = upperOutBits);
+
+
+    // Set Output ALU Flags 2
+    // If 0, upper and lower bits should be 0, meaning an 8 way or should be 0 if all are 0
+    Or8Way(in=lowerOutBits, out=lowerOutBitsDifferent); // are lower out bits different?
+    Or8Way(in=upperOutBits, out=upperOutBitsDifferent); // are upper out bits different?
+    Or(a=lowerOutBitsDifferent, b=upperOutBitsDifferent, out=notZr);
+    Not(in=notZr, out=zr);
 }

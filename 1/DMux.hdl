@@ -14,6 +14,7 @@ CHIP DMux {
     PARTS:
     Not(in=sel, out=notSel);
 
+    // select MSB if sel is 0
     And(a=in, b=notSel, out=a);
 
     And(a=in, b=sel, out=b);
