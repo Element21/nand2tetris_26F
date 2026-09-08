@@ -10,9 +10,20 @@
  * else              out(t+1) = out(t)
  */
 CHIP PC {
-    IN in[16],inc, load, reset;
+    IN in[16], inc, load, reset;
     OUT out[16];
     
     PARTS:
-    //// Replace this comment with your code.
+    // Increment? (prev. input)
+    Inc16(in=nextIn, out=incremented);
+    Mux16(a=nextIn, b=incremented, sel=inc, out=postIncrement);
+
+    // Load? (current input)
+    Mux16(a=postIncrement, b=in, sel=load, out=postLoad);
+
+    // Reset?
+    Mux16(a=postLoad, b=false, sel=reset, out=currentOut);
+
+    // Save value for next cycle
+    Register(in=currentOut, load=true, out=out, out=nextIn);
 }

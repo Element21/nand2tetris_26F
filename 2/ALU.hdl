@@ -63,7 +63,6 @@ CHIP ALU {
     // Choose which function to output based on f
     Mux16(a=andResult, b=addResult, sel=f, out=functionResult);
 
-
     // Negate Output + Set Negative Flag
     // Zero -> Negation -> Functions -> Negate Output -> Set Flags
     Not16(in=functionResult, out=negationResult);
