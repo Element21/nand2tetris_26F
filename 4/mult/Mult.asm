@@ -7,15 +7,25 @@
 // (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
 // The algorithm is based on repetitive addition.
 
-@R2
-M = 0 // Clear R2
-
 @sum
 M = 0 // Clear sum
 
+
+(CHECK_IF_ONE_ZERO) 
+// If either R0 or R1 is 0, result is 0
+@R0
+D = M // D = R0
+@LOAD_RESULT_FROM_SUM
+D;JEQ
+
+@R1
+D = M // D = R0
+@LOAD_RESULT_FROM_SUM
+D;JEQ
+
+
 @R0
 D = M // Load value into D
-
 @R1
 D = D-M // > 0, R0 bigger, else R1 bigger
 
