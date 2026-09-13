@@ -51,12 +51,14 @@ echo "=========================================="
 echo " Grading Nand2Tetris: Project $PROJ_NUM using $RUNNER"
 echo "=========================================="
 
-for testfile in *.tst; do
-    [ -e "$testfile" ] || continue
+while IFS= read -r -d '' testfile; do
     TOTAL=$((TOTAL + 1))
-    
+
+    TEST_DIR=$(dirname "$testfile")
+    TEST_NAME=$(basename "$testfile")
+
     # Run the appropriate simulator script and capture output
-    OUTPUT=$("$RUNNER" "$testfile" 2>&1)
+    OUTPUT=$(cd "$TEST_DIR" && "$RUNNER" "$TEST_NAME" 2>&1)
     
     if echo "$OUTPUT" | grep -q "Comparison ended successfully"; then
         echo -e "[\e[32mPASS\e[0m] $testfile"
@@ -66,7 +68,11 @@ for testfile in *.tst; do
         echo "$OUTPUT" | grep -i "comparison failure"
         FAILED=$((FAILED + 1))
     fi
-done
+done < <(
+    shopt -s nullglob globstar
+    testfiles=(**/*.tst)
+    printf '%s\0' "${testfiles[@]}"
+)
 
 echo "------------------------------------------"
 echo "Score: $PASSED / $TOTAL passed."
