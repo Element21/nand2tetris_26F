@@ -46,7 +46,8 @@ D;JEQ // If (i-8192)==0 goto MAIN again
 D = M // D = current iteration (i)
 
 @SCREEN // Select start of screen memory (16 bits)
-D = A+D // Increment screen address by value of i (shift to next 16 bits each loop)
+
+D = A+D // Increment screen address by value of i (shift to next 16 bits each loop) (ONLY SHIFT 1 BIT OVER EACH TIME BUT IT STILL WORKS)
 A = D // Select the newly incremented address
 M = -1 // Set all 16 bits of new address to 1 (black) (2s complement)
 
