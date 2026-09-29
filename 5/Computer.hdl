@@ -14,9 +14,17 @@
  * some input using the keyboard, or the program may do some procerssing. 
  */
 CHIP Computer {
-
     IN reset;
 
     PARTS:
-    //// Replace this comment with your code.
+    // pc holds current instruction?
+    ROM32K(address=pc, out=currentInstruction);
+
+    CPU(inM=mForCPU, instruction=currentInstruction, reset=reset, outM=outM, writeM=writeM, addressM=addressM, pc=pc);
+
+    // input: what does the cpu want to write to memory?
+    // load: does the cpu want to write to memory?
+    // address: what address does the cpu want?
+    // out: whatever RAM[address] value the cpu wants
+    Memory(in=outM, load=writeM, address=addressM, out=mForCPU);
 }

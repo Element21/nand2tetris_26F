@@ -25,5 +25,27 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-	//// Replace this comment with your code.
+    // Use a, b, c, d outputs for selecting which address range?
+    // address[14..15]
+    // a = 00, b = 01; Upper and lower ram16k addresses
+    // c = 10; screen addresses
+    // d = 11; kbd address
+    DMux4Way(in=load, sel=address[13..14], a=loadRam16kLowerHalf, b=loadRam16kUpperHalf, c=loadScreen, d=loadKbd);
+    Or(a=loadRam16kLowerHalf, b=loadRam16kUpperHalf, out=loadRam);
+
+
+    // Keyboard (24,576; 1 address/register)
+    // 110 0000 0000 0000
+    Keyboard(out=kbdOut);
+
+    // Screen (16,384-24,575; Middle 8k addresses)
+    // 100 0000 0000 0000 - 101 1111 1111 1111
+    Screen(in=in, load=loadScreen, address=address[0..12], out=screenOut);
+
+    // Ram16k (0-16,383; Lowest 16k addresses)
+    // 000 0000 0000 0000 - 011 1111 1111 1111
+    RAM16K(in=in, load=loadRam, address=address[0..13], out=ram16kOut);
+
+    // If sel is 00 or 01, output RAM. If 10, output screen. If 11, output keyboard
+    Mux4Way16(a=ram16kOut, b=ram16kOut, c=screenOut, d=kbdOut, sel=address[13..14], out=out);
 }
