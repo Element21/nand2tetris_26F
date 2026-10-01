@@ -90,9 +90,9 @@ while asm_parser.has_more_commands():
         else:
             address_to_encode = current_ram_address
             asm_symbol_table.addEntry(extracted_var_name, current_ram_address)
-            current_ram_address += (
-                1  # Select next free ram address for the next variable
-            )
+
+            # Select next free ram address for the next variable
+            current_ram_address += 1
 
         output_file_commands.append(f"{address_to_encode:016b}".encode())
 
