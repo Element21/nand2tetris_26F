@@ -14,9 +14,7 @@ arg_parser = argparse.ArgumentParser(
 
 arg_parser.add_argument("input_filename")
 arg_parser.add_argument("output_filename")
-arg_parser.add_argument(
-    "-d", "--debug", action="store_true"
-)  # If set, args.debug is True
+arg_parser.add_argument("-d", "--debug", action="store_true")  # If set, args.debug is True
 
 args = arg_parser.parse_args()
 
@@ -49,9 +47,7 @@ while asm_parser.has_more_commands():
         asm_symbol_table.addEntry(extracted_label_name, current_rom_address)
 
         if args.debug:
-            print(
-                f"L COMMAND: {asm_parser.get_current_command()}\tLABEL NAME: {extracted_label_name}"
-            )
+            print(f"L COMMAND: {asm_parser.get_current_command()}  LABEL NAME: {extracted_label_name}\n")
     else:
         "A or C command"
         current_rom_address += 1  # Takes up one line in output machine code
@@ -84,22 +80,30 @@ while asm_parser.has_more_commands():
         extracted_var_name = asm_parser.symbol()
 
         if extracted_var_name.isdigit():
+            "If stuff after @ is numerical, it must be an address, not a variable name"
             address_to_encode = int(extracted_var_name)
         elif asm_symbol_table.contains(extracted_var_name):
+            "If we already have that name defined, use its address"
             address_to_encode = asm_symbol_table.get_address(extracted_var_name)
+
+            if args.debug:
+                print(f"Var with name '{extracted_var_name}' already defined at address {address_to_encode}! Not redefining")
         else:
+            "Else, add a new entry to symbol table mapping that var name to the earliest free RAM address"
             address_to_encode = current_ram_address
             asm_symbol_table.addEntry(extracted_var_name, current_ram_address)
 
             # Select next free ram address for the next variable
             current_ram_address += 1
 
-        output_file_commands.append(f"{address_to_encode:016b}".encode())
+        # Encode current command and write line as entry in output file list
+        # int to 16 bit binary conversion (pad with leading zeros; first bit 0) (.encode to output a bytes object)
+        address_to_encode_binary = f"{address_to_encode:016b}".encode()
+        output_file_commands.append(address_to_encode_binary)
 
         if args.debug:
-            print(
-                f"A COMMAND: {asm_parser.get_current_command()}\tLABEL NAME: {extracted_var_name}"
-            )
+            print(f"A COMMAND: {asm_parser.get_current_command()}\tLABEL NAME: {extracted_var_name}\nRAM address: {address_to_encode}\nbinary RAM address with leading 0 (instruction): {address_to_encode_binary}", end="\n\n")
+
     elif command_type == Command.C_COMMAND:
         # Parse out parts of instruction
         dest = asm_parser.dest()
@@ -120,7 +124,14 @@ while asm_parser.has_more_commands():
         jump_bits = encoder.lookup_jump(jump)
 
         # 111 = c command
-        output_file_commands.append(b"111" + a_bit + comp_bits + dest_bits + jump_bits)
+        binary_c_command = b"111" + a_bit + comp_bits + dest_bits + jump_bits
+
+        if args.debug:
+            print(f"C Command: {asm_parser.get_current_command()}\tdest: {dest}\tcomp: {comp}\tjump: {jump}")
+            print(f"dest bits: {dest_bits}  comp bits: {comp_bits} jump bits: {jump_bits}")
+            print(f"Final instruction: {binary_c_command}\n\n")
+
+        output_file_commands.append(binary_c_command)
 
 with open(args.output_filename, "wb") as output_file:
     output_file.write(b"\n".join(output_file_commands))
