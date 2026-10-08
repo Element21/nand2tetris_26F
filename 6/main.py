@@ -125,10 +125,10 @@ while asm_parser.has_more_commands():
         jump = asm_parser.jump()
 
         if "M" in comp:
-            "We need to load from memory instead of from A"
+            "ALU input from M register (RAM[A register])"
             a_bit = b"1"
         else:
-            "Data comes from A register, not from memory"
+            "ALU input from A register"
             a_bit = b"0"
 
         # Lookup binary for all parts of the C-command.
