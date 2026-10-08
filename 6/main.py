@@ -35,7 +35,7 @@ args = arg_parser.parse_args()
 asm_symbol_table = SymbolTable()
 asm_parser = Parser(args.input_filename)
 
-current_rom_address = 0
+rom_address = 0
 
 while asm_parser.has_more_commands():
     asm_parser.advance()  # Must advace BEFORE reading a command
@@ -46,7 +46,21 @@ while asm_parser.has_more_commands():
 
         extracted_label_name = asm_parser.symbol()
 
-        asm_symbol_table.addEntry(extracted_label_name, current_rom_address)
+        # Label name -> next instruction in ROM
+        # ROM ADDRESS   INSTRUCTION     MEANING
+        # 0             @i              Next line rom_address = 1
+        # 1             (LOOP)          LOOP maps to ROM address 1 (don't inc rom counter)
+        # 1             D=M             Next line rom_address = 2
+        # 2
+        # OR
+        # Label name -> next instruction in ROM
+        # ROM ADDRESS   INSTRUCTION     MEANING
+        # 0             (LOOP)          LOOP maps to ROM address 0 (don't inc rom counter)
+        # 0             @i              Next line rom_address = 1
+        # 1             D=M             Next line rom_address = 2
+        # 2
+
+        asm_symbol_table.addEntry(extracted_label_name, rom_address)
 
         if args.debug:
             print(
@@ -54,7 +68,7 @@ while asm_parser.has_more_commands():
             )
     else:
         "A or C command"
-        current_rom_address += 1  # Takes up one line in output machine code
+        rom_address += 1  # Takes up one line in output machine code
 
 
 # Second Pass Now go again through the entire program, and parse each line. Each
